@@ -16,12 +16,13 @@ from tqdm import tqdm
 
 
 class ReferenceLibrary(object):
-    def __init__(self, file_name=None, max_molecules=100000000):
+    def __init__(self, file_name=None, max_molecules=100000000, chunksize=1000):
         if file_name is None:
             self.file_name = REFERENCE_SMILES
         else:
             self.file_name = file_name
         self.max_molecules = max_molecules
+        self.chunksize = chunksize
 
     def _read_file_only_valid(self):
         smiles_list = []
@@ -54,18 +55,11 @@ class ReferenceLibrary(object):
             for smi in smiles_list:
                 writer.writerow([smi])
 
-    @staticmethod
-    def chunked_iterable(seq, size):
-        return (seq[pos:pos + size] for pos in range(0, len(seq), size))
-                          
     def save(self, h5_file):
         assert h5py is not None
-        self.mdl = Featurizer(standardise=True)
+        self.mdl = Featurizer(standardise=True, chunksize=self.chunksize)
         smiles_list = self._read_file_only_valid()
-        X = np.zeros((len(smiles_list), self.mdl.transform([smiles_list[0]]).shape[1]), dtype=np.float32)
-        idxs = np.array([i for i in range(len(smiles_list))])
-        for chunk in tqdm(self.chunked_iterable(idxs, 1000)):
-            X[chunk] = self.mdl.transform([smiles_list[i] for i in chunk])
+        X = self.mdl.transform(smiles_list)
         with h5py.File(h5_file, "w") as f:
             f.create_dataset("Values", data=X)
             smiles_list = np.array(smiles_list, h5py.string_dtype())
