@@ -1288,14 +1288,12 @@ class SmilesIndexFeaturizer(MolFeaturizer):
         single_char_smiles = self.encode(standard_smiles)
         decorated_smiles = self.decorate(list(single_char_smiles))
         valid_smiles = self.is_legal(standard_smiles) and self.is_short(decorated_smiles)
-        #valid_smiles = True # Hack
 
         if valid_smiles:
             for i, c in enumerate(decorated_smiles):
                 try:
                     indices_array[i] = self.token_to_idx[c]
                 except KeyError:
-                #except: # Hack
                     logging.warning(f'SMILES has unknown symbol {decorated_smiles} -> {c}')
 
         return indices_array, valid_smiles

@@ -21,10 +21,7 @@ class Featurizer(object):
         self.model = MolBertFeaturizer(CHECKPOINT)
 
     def transform(self, smiles_list):
-        #return np.zeros(100)
         features, masks = self.model.transform(smiles_list)
-        print(len(smiles_list))
-        #assert all(masks)
         return features
 
 
@@ -36,9 +33,7 @@ class ReferenceLibrary(object):
         else:
             self.file_name = file_name
 
-    def save(self, dir_path):
-        os.makedirs(dir_path, exist_ok=True)
-        mdl = Featurizer()
+    def _read_file_only_valid(self, dir_path):
         smiles_list = []
         with open(self.file_name, "r") as f:
             reader = csv.reader(f, delimiter="\t")
@@ -46,7 +41,26 @@ class ReferenceLibrary(object):
             for r in reader:
                 smiles_list += [r[1]]
         smiles_list = smiles_list[:10]
-        X = mdl.transform(smiles_list)
+        f = self.mdl.model.featurizer
+        std_smiles = []
+        for smi in smiles_list:
+            smi = f.standardise(smi)
+            if smi is not None:
+                std_smiles += [smi]
+        val_smiles = []
+        for standard_smiles in std_smiles:
+            single_char_smiles = f.encode(standard_smiles)
+            decorated_smiles = f.decorate(list(single_char_smiles))
+            valid_smiles = f.is_legal(standard_smiles) and f.is_short(decorated_smiles)
+            if valid_smiles:
+                val_smiles += [standard_smiles]
+        return val_smiles
+
+    def save(self, dir_path):
+        os.makedirs(dir_path, exist_ok=True)
+        self.mdl = Featurizer()
+        smiles_list = self._read_file_only_valid(dir_path)
+        X = self.mdl.transform(smiles_list)
         with h5py.File(os.path.join(dir_path, REFERENCE_DATA), "w") as f:
             f.create_dataset("Values", data=X)
             smiles_list = np.array(smiles_list, h5py.string_dtype())
