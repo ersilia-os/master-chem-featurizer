@@ -6,7 +6,7 @@ This repository provides an interface to a pre-trained MolBERT model, as develop
 ```bash
 git clone git@github.com:ersilia-os/molbertfeat.git
 cd molbertfeat
-pip install .
+pip install -e .
 ```
 
 By default, RDKit and h5py are not installed. Those are necessary **only** if you want to standardize molecules and generate the default chemical library. If you want to have these functionalities, simply do:
