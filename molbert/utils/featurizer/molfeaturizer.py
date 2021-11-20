@@ -7,13 +7,17 @@ from typing import List, Tuple, Dict, Sequence, Optional
 import numpy as np
 import pandas as pd
 import scipy.stats as st
-from rdkit import Chem
-from rdkit.Chem import Descriptors
-from rdkit.Chem.rdMolDescriptors import GetMorganFingerprint
-from rdkit.ML.Descriptors.MoleculeDescriptors import MolecularDescriptorCalculator
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
+
+try:
+    from rdkit import Chem
+    from rdkit.Chem import Descriptors
+    from rdkit.ML.Descriptors.MoleculeDescriptors import MolecularDescriptorCalculator
+except:
+    logger.warning("Rdkit does not seem to be installed. Please use with caution: SMILES need to be valid and standardised if you want to achieve meaningful feature vectors")
+    Chem = None
 
 
 class MolFeaturizer(ABC):
@@ -68,6 +72,8 @@ class MolFeaturizer(ABC):
         return np.array([self.is_valid_single(mol) for mol in molecules])
 
     def is_valid_single(self, molecule: str) -> bool:
+        if Chem is None:
+            return True
         mol = Chem.MolFromSmiles(molecule, True, {})
 
         if mol is None or len(molecule) == 0:
@@ -102,11 +108,12 @@ class RDKitFeaturizer(MolFeaturizer, ABC):
 
         return self.transform_mol(mol)
 
-    @abstractmethod
-    def transform_mol(self, molecule: Chem.rdchem.Mol) -> Tuple[np.ndarray, bool]:
-        """
-        Featurizes one molecule given as a RDKit.Mol
-        """
+    if Chem is not None:
+        @abstractmethod
+        def transform_mol(self, molecule: Chem.rdchem.Mol) -> Tuple[np.ndarray, bool]:
+            """
+            Featurizes one molecule given as a RDKit.Mol
+            """
 
 
 class PhysChemFeaturizer(RDKitFeaturizer):
@@ -203,15 +210,17 @@ class PhysChemFeaturizer(RDKitFeaturizer):
 
         return features, valid
 
-    def transform_mol(self, molecule: Chem.rdchem.Mol) -> Tuple[np.ndarray, bool]:
-        fp = self.calc.CalcDescriptors(molecule)
-        fp = np.array(fp)
-        mask = np.isfinite(fp)
-        fp[~mask] = 0
-        fp = rdkit_dense_array_to_np(fp, dtype=float)
-        if self.normalise:
-            fp = self.scaler.transform_single(fp)
-        return fp, True
+    if Chem is not None:
+
+        def transform_mol(self, molecule: Chem.rdchem.Mol) -> Tuple[np.ndarray, bool]:
+            fp = self.calc.CalcDescriptors(molecule)
+            fp = np.array(fp)
+            mask = np.isfinite(fp)
+            fp[~mask] = 0
+            fp = rdkit_dense_array_to_np(fp, dtype=float)
+            if self.normalise:
+                fp = self.scaler.transform_single(fp)
+            return fp, True
 
     def is_valid_single(self, molecule: str) -> bool:
         _, valid = self.transform_single(molecule)
@@ -238,7 +247,14 @@ class PhysChemFeaturizer(RDKitFeaturizer):
         """
         Get available descriptor names for RDKit physchem features. Custom subset can be used as list of descriptors.
         """
-        return sorted([x[0] for x in Descriptors._descList])
+        if Chem is None:
+            descs = []
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "descriptors.txt"), "r") as f:
+                for l in f:
+                    descs += [l.rstrip()]
+            return descs
+        else:
+            return sorted([x[0] for x in Descriptors._descList])
 
     @staticmethod
     def get_simple_descriptor_subset() -> List[str]:
@@ -878,104 +894,6 @@ class PhyschemScaler:
         return transformed
 
 
-class MorganFPFeaturizer(RDKitFeaturizer):
-    """
-    MolFeaturizer generating the Morgan fingerprints.
-    @see http://rdkit.org/docs/source/rdkit.Chem.rdMolDescriptors.html#rdkit.Chem.rdMolDescriptors.GetMorganFingerprint
-    """
-
-    def __init__(
-        self,
-        fp_size: int = 2048,
-        radius: int = 2,
-        use_counts: bool = False,
-        use_features: bool = False,
-        use_chirality=False,
-        fingerprint_extra_args: Optional[dict] = None,
-    ):
-        """
-        Args:
-            fp_size: fingerprint length to generate.
-            radius: fingerprint radius to generate.
-            use_counts: use counts in fingerprint.
-            use_features: use features in fingerprint.
-            fingerprint_extra_args: kwargs for `GetMorganFingerprint`
-        """
-        super().__init__()
-
-        if fingerprint_extra_args is None:
-            fingerprint_extra_args = {}
-
-        self.fp_size = fp_size
-        self.radius = radius
-        self.use_features = use_features
-        self.use_counts = use_counts
-        self.use_chirality = use_chirality
-        self.fingerprint_extra_args = fingerprint_extra_args
-
-    def transform_mol(self, molecule: Chem.rdchem.Mol) -> Tuple[np.ndarray, bool]:
-        use_chirality = self.__dict__.get('use_chirality', False)
-
-        fp = GetMorganFingerprint(
-            molecule,
-            radius=self.radius,
-            useFeatures=self.use_features,
-            useCounts=self.use_counts,
-            useChirality=use_chirality,
-            **self.fingerprint_extra_args,
-        )
-        fp = rdkit_sparse_array_to_np(fp.GetNonzeroElements().items(), use_counts=self.use_counts, fp_size=self.fp_size)
-
-        return fp, True
-
-    @property
-    def output_size(self) -> int:
-        return self.fp_size
-
-
-def rdkit_dense_array_to_np(dense_fp, dtype=np.int32):
-    """
-    Converts RDKit ExplicitBitVect to 1D numpy array with specified dtype.
-    Args:
-        dense_fp (ExplicitBitVect or np.ndarray): fingerprint
-        dtype: dtype of the returned array
-
-    Returns:
-        Numpy matrix with shape (fp_len,)
-    """
-    dense_fp = np.array(dense_fp, dtype=dtype)
-    if len(dense_fp.shape) == 1:
-        pass
-    elif len(dense_fp.shape) == 2 and dense_fp.shape[0] == 1:
-        dense_fp = np.squeeze(dense_fp, axis=0)
-    else:
-        raise ValueError("Input matrix should either have shape of (fp_size, ) or (1, fp_size).")
-
-    return np.array(dense_fp)
-
-
-def rdkit_sparse_array_to_np(sparse_fp, use_counts, fp_size):
-    """
-    Converts an rdkit int hashed fingerprint into a 1D numpy array.
-
-    Args:
-        sparse_fp (dict: int->float): sparse dict of values set
-        use_counts (bool): when folding up the hash, should it sum or not
-        fp_size (int): length of fingerprint
-
-    Returns:
-        Numpy array of fingerprint
-    """
-    fp = np.zeros((fp_size,), np.int32)
-    for idx, v in sparse_fp:
-        if use_counts:
-            fp[idx % fp_size] += int(v)
-        else:
-            fp[idx % fp_size] = 1
-
-    return fp
-
-
 class SmilesIndexFeaturizer(MolFeaturizer):
     """
     Transforms a SMILES string into its index character representation
@@ -1107,6 +1025,8 @@ class SmilesIndexFeaturizer(MolFeaturizer):
         Returns: standard version the SMILES if valid, None otherwise
 
         """
+        if Chem is None:
+            return smiles
         try:
             mol = Chem.MolFromSmiles(smiles, sanitize=False)
         except Exception as e:

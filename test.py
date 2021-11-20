@@ -1,4 +1,4 @@
-from molbert import ReferenceLibrary
+from molbert import Featurizer
 
 rl = ReferenceLibrary()
 rl.save("../reflib")
