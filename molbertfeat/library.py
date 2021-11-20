@@ -55,13 +55,8 @@ class ReferenceLibrary(object):
                 writer.writerow([smi])
 
     @staticmethod
-    def chunked_iterable(iterable, size):
-        it = iter(iterable)
-        while True:
-            chunk = tuple(itertools.islice(it, size))
-            if not chunk:
-                break
-            yield chunk
+    def chunked_iterable(seq, size):
+        return (seq[pos:pos + size] for pos in range(0, len(seq), size))
                           
     def save(self, h5_file):
         assert h5py is not None
