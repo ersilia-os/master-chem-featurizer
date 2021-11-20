@@ -21,19 +21,15 @@ with open("README.md", "r") as fh:
 setup(
     name="molbert",
     version=__version__,
-    author="BenevolentAI",
-    author_email="chemval@benevolent.ai",
-    description="Language modelling on chem/bio sequences",
+    author="Ersilia Open Source Initiative - Largely based on code from BenevolentAI",
+    author_email="hello@ersilia.io",
+    description="A molecule featurizer based on the MolBERT model developed by BenevolentAI",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/BenevolentAI/MolBERT",
+    url="https://github.com/ersilia-os/molbert-featurizer/",
     packages=find_packages(),
     install_requires=[
-        "flake8==3.8.4",
-        "mypy==0.790",
-        "pytest==5.3.2",
         "pytorch-lightning==0.8.4",
-        "scikit-learn==0.21.3",
         "scipy==1.3.1",
         "transformers==3.5.1",
         "torch==1.4.0",
@@ -41,7 +37,7 @@ setup(
     include_package_data=True,
     zip_safe=True,
     classifiers=(
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
         "Operating System :: OS Independent",
     ),
 )

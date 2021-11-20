@@ -3,8 +3,12 @@ __version__ = "0.0.1"
 import sys
 import os
 import csv
-import h5py
 import numpy as np
+
+try:
+    import h5py
+except:
+    h5py = None
 
 from molbert.utils.featurizer.molbert_featurizer import MolBertFeaturizer
 
@@ -57,6 +61,7 @@ class ReferenceLibrary(object):
         return val_smiles
 
     def save(self, dir_path):
+        assert (h5py is not None)
         os.makedirs(dir_path, exist_ok=True)
         self.mdl = Featurizer()
         smiles_list = self._read_file_only_valid(dir_path)
@@ -67,6 +72,7 @@ class ReferenceLibrary(object):
             f.create_dataset("Inputs", data=smiles_list)
 
     def read(self, dir_path):
+        assert (h5py is not None)
         with h5py.File(os.path.join(dir_path, REFERENCE_DATA), "r") as f:
             X = f["Values"][:]
             smiles_list = f["Inputs"][:]

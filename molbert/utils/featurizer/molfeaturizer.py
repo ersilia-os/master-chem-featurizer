@@ -5,8 +5,7 @@ from abc import abstractmethod, ABC
 from typing import List, Tuple, Dict, Sequence, Optional
 
 import numpy as np
-import pandas as pd
-import scipy.stats as st
+import csv
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -155,9 +154,12 @@ class PhysChemFeaturizer(RDKitFeaturizer):
         )
 
         self.fingerprint_extra_args = fingerprint_extra_args
-        self.calc = MolecularDescriptorCalculator(
-            self.descriptors, **self.fingerprint_extra_args
-        )
+        if Chem is None:
+            self.calc = None
+        else:
+            self.calc = MolecularDescriptorCalculator(
+                self.descriptors, **self.fingerprint_extra_args
+            )
         self.normalise = normalise
 
         distributions_path = os.path.join(
@@ -1037,9 +1039,14 @@ class SmilesIndexFeaturizer(MolFeaturizer):
     def load_periodic_table() -> Tuple[List[str], List[str]]:
         this_directory = os.path.dirname(os.path.realpath(__file__))
         data_path = os.path.join(this_directory, "../data/elements.txt")
-        df = pd.read_csv(data_path)
-        names = df["symbol"].to_list()
-        chars = df["char"].to_list()
+        with open(data_path, "r") as f:
+            reader = csv.reader(f)
+            next(reader)
+            names = []
+            chars = []
+            for r in reader:
+                names += [r[1]]
+                chars += [r[-1]]
         return names, chars
 
     def is_legal(self, smiles: str) -> bool:
