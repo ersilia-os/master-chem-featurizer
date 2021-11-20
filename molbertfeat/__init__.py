@@ -1,6 +1,7 @@
 __version__ = "0.0.1"
 
 import os
+import numpy as np
 from molbertfeat.utils.featurizer.molbert_featurizer import MolBertFeaturizer
 
 PATH = os.path.dirname(os.path.abspath(__file__))
