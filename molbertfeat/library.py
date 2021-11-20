@@ -64,7 +64,7 @@ class ReferenceLibrary(object):
         smiles_list = self._read_file_only_valid()
         X = np.zeros((len(smiles_list), self.mdl.transform([smiles_list[0]]).shape[1]), dtype=np.float32)
         idxs = np.array([i for i in range(len(smiles_list))])
-        for chunk in tqdm(self.chunked_iterable(idxs, 10000)):
+        for chunk in tqdm(self.chunked_iterable(idxs, 1000)):
             X[chunk] = self.mdl.transform([smiles_list[i] for i in chunk])
         with h5py.File(h5_file, "w") as f:
             f.create_dataset("Values", data=X)
