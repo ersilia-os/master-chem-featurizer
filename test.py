@@ -1,5 +1,5 @@
-from mcf import ReferenceLibrary
+from molbert import ReferenceLibrary
 
 rl = ReferenceLibrary()
 rl.save("../reflib")
-print(rl.load())
+print(rl.read("../reflib"))
