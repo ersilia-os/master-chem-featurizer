@@ -910,6 +910,7 @@ class SmilesIndexFeaturizer(MolFeaturizer):
         extra_symbols: Optional[List[str]] = None,
         canonicalise: bool = True,
         permute: bool = False,
+        assume_standardised: bool = False,
     ) -> None:
 
         self.max_length = max_length
@@ -922,6 +923,7 @@ class SmilesIndexFeaturizer(MolFeaturizer):
         self.symbols += self.extra_symbols
         self.canonicalise = canonicalise
         self.permute = permute
+        self.assume_standardised = assume_standardised
 
         assert not (self.permute and self.canonicalise), 'Cannot have both permute and canonicalise equal True'
 
@@ -1025,7 +1027,7 @@ class SmilesIndexFeaturizer(MolFeaturizer):
         Returns: standard version the SMILES if valid, None otherwise
 
         """
-        if Chem is None:
+        if Chem is None or self.assume_standardised:
             return smiles
         try:
             mol = Chem.MolFromSmiles(smiles, sanitize=False)
@@ -1272,6 +1274,7 @@ class SmilesIndexFeaturizer(MolFeaturizer):
         allowed_elements: tuple = ('F', 'H', 'I', 'B', 'C', 'N', 'O', 'P', 'S', 'Br', 'Cl', 'Si', 'Se', 'se', '@@'),
         canonicalise: bool = False,
         permute: bool = False,
+        assume_standardised: bool = False
     ):
         """
         Bert specific index featurizer
@@ -1285,4 +1288,5 @@ class SmilesIndexFeaturizer(MolFeaturizer):
             extra_symbols=['[MASK]'],
             canonicalise=canonicalise,
             permute=permute,
+            assume_standardised=assume_standardised,
         )

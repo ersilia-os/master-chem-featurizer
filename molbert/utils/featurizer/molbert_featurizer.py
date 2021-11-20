@@ -27,6 +27,7 @@ class MolBertFeaturizer:
         embedding_type: str = 'pooled',
         max_seq_len: Optional[int] = None,
         permute: bool = False,
+        assume_standardised: bool = False,
     ) -> None:
         """
         Args:
@@ -49,6 +50,7 @@ class MolBertFeaturizer:
         self.output_all = False if self.embedding_type in ['pooled'] else True
         self.max_seq_len = max_seq_len
         self.permute = permute
+        self.assume_standardised = assume_standardised
 
         # load config
         with open(self.hparams_path) as yaml_file:
@@ -173,7 +175,7 @@ class MolBertFeaturizer:
             logger.debug('getting smiles index featurizer of length: ', max_seq_len)
         else:
             max_seq_len = self.max_seq_len
-        return SmilesIndexFeaturizer.bert_smiles_index_featurizer(max_seq_len, permute=self.permute)
+        return SmilesIndexFeaturizer.bert_smiles_index_featurizer(max_seq_len, permute=self.permute, assume_standardised=self.assume_standardised)
 
     @staticmethod
     def trim_batch(input_ids, valid):

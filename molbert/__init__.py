@@ -17,8 +17,8 @@ REFERENCE_DATA = "data.h5"
 
 class Featurizer(object):
 
-    def __init__(self):
-        self.model = MolBertFeaturizer(CHECKPOINT)
+    def __init__(self, standardise: bool = False):
+        self.model = MolBertFeaturizer(CHECKPOINT, assume_standardised = not standardise)
 
     def transform(self, smiles_list):
         features, masks = self.model.transform(smiles_list)
