@@ -29,6 +29,7 @@ setup(
     url="https://github.com/ersilia-os/molbert-featurizer/",
     packages=find_packages(),
     install_requires=[
+        "tqdm",
         "pytorch-lightning==0.8.4",
         "transformers==3.5.1",
         "torch==1.4.0",
