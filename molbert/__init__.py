@@ -23,7 +23,8 @@ class Featurizer(object):
     def transform(self, smiles_list):
         #return np.zeros(100)
         features, masks = self.model.transform(smiles_list)
-        assert all(masks)
+        print(len(smiles_list))
+        #assert all(masks)
         return features
 
 
