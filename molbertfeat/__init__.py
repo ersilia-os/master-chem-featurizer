@@ -11,7 +11,7 @@ CHECKPOINT = os.path.join(
 )
 REFERENCE_SMILES = os.path.join(PATH, "..", "data", "chembl_29_chemreps.txt")
 
-EMBEDDING_SIZE = 784
+EMBEDDING_SIZE = 768
 
 class Featurizer(object):
     def __init__(self, standardise: bool = False, chunksize: int = 1000):
