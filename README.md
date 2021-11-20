@@ -9,7 +9,7 @@ cd molbertfeat
 pip install .
 ```
 
-By default, RDKit and h5py are not installed. Those are necessary to allow standardization and to generate the default chemical library. If you want to have these functionalities, simply do:
+By default, RDKit and h5py are not installed. Those are necessary **only** if you want to standardize molecules and generate the default chemical library. If you want to have these functionalities, simply do:
 ```bash
 pip install rdkit-pypi
 pip install h5py
