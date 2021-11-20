@@ -1,4 +1,4 @@
-__version__ = '0.0.1'
+__version__ = "0.0.1"
 
 import sys
 import os
@@ -9,16 +9,17 @@ import numpy as np
 from molbert.utils.featurizer.molbert_featurizer import MolBertFeaturizer
 
 PATH = os.path.dirname(os.path.abspath(__file__))
-CHECKPOINT = os.path.join(PATH, "..", "model", "molbert_100epochs", "checkpoints", "last.ckpt")
+CHECKPOINT = os.path.join(
+    PATH, "..", "model", "molbert_100epochs", "checkpoints", "last.ckpt"
+)
 REFERENCE_SMILES = os.path.join(PATH, "..", "data", "chembl_29_chemreps.txt")
 
 REFERENCE_DATA = "data.h5"
 
 
 class Featurizer(object):
-
     def __init__(self, standardise: bool = False):
-        self.model = MolBertFeaturizer(CHECKPOINT, assume_standardised = not standardise)
+        self.model = MolBertFeaturizer(CHECKPOINT, assume_standardised=not standardise)
 
     def transform(self, smiles_list):
         features, masks = self.model.transform(smiles_list)
@@ -26,8 +27,7 @@ class Featurizer(object):
 
 
 class ReferenceLibrary(object):
-
-    def __init__(self, file_name = None):
+    def __init__(self, file_name=None):
         if file_name is None:
             self.file_name = REFERENCE_SMILES
         else:
