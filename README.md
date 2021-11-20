@@ -1,5 +1,6 @@
 # MolBERT featurizer
-This repository provides an interface to a pre-trained MolBERT model, as developed by BenevolentAI.
+This repository provides an interface to a pre-trained MolBERT model, as developed by BenevolentAI: https://github.com/BenevolentAI/MolBERT
+All credit goes to the original authors. 
 
 ## Install
 
