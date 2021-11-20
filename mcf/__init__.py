@@ -7,7 +7,7 @@ from .molbert.utils.featurizer.molbert_featurizer import MolBertFeaturizer
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 CHECKPOINT = os.path.join(PATH, "model", "molbert_100epochs", "checkpoints", "last.ckpt")
-REFERENCE_SMILES = os.path.join(PATH, "data", "chembl_reps_24.txt")
+REFERENCE_SMILES = os.path.join(PATH, "data", "chembl_24_chemreps.txt")
 
 REFERENCE_DATA = "data.h5"
 
@@ -15,10 +15,10 @@ REFERENCE_DATA = "data.h5"
 class Featurizer(object):
 
     def __init__(self):
-        self.f = MolBertFeaturizer(CHECKPOINT)
+        self.model = MolBertFeaturizer(CHECKPOINT)
 
     def transform(self, smiles_list):
-        features, masks = f.transform(smiles_list)
+        features, masks = self.model.transform(smiles_list)
         assert all(masks)
         return features        
 
@@ -36,7 +36,7 @@ class ReferenceLibrary(object):
         mdl = Featurizer()
         smiles_list = []
         with open(self.file_name, "r") as f:
-            reader = csv.reader(f)
+            reader = csv.reader(f, delimiter="\t")
             next(reader)
             for r in reader:
                 smiles_list += [r[1]]
