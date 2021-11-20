@@ -9,11 +9,19 @@ CHECKPOINT = os.path.join(
 )
 REFERENCE_SMILES = os.path.join(PATH, "..", "data", "chembl_29_chemreps.txt")
 
+EMBEDDING_SIZE = 784
 
 class Featurizer(object):
-    def __init__(self, standardise: bool = False):
+    def __init__(self, standardise: bool = False, chunksize: int = 1000):
         self.model = MolBertFeaturizer(CHECKPOINT, assume_standardised=not standardise)
+        self.chunksize = chunksize
+        
+    def chunked_iterable(self, seq):
+        return (seq[pos:pos + self.chunksize] for pos in range(0, len(seq), self.chunksize))
 
     def transform(self, smiles_list):
-        features, masks = self.model.transform(smiles_list)
-        return features
+        X = np.zeros((len(smiles_list), EMBEDDING_SIZE), np.float32)
+        idxs = np.array([i for i in range(len(smiles_list))], np.int8)
+        for chunk in tqdm(self.chunked_iterable(idxs)):
+            X[chunk], _ = self.model.transform([smiles_list[i] for i in chunk])
+        return X
