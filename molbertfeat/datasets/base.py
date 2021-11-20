@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional, Tuple, Union
 
 import torch
-from molbert.utils.lm_utils import (
+from molbertfeat.utils.lm_utils import (
     InputExample,
     convert_example_to_features,
     unmask_lm_labels,

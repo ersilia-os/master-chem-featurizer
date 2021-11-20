@@ -9,17 +9,17 @@ from setuptools import find_packages, setup
 this_directory = os.path.dirname(os.path.realpath(__file__))
 version_matches = re.search(
     r'__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
-    io.open(f"{this_directory}/molbert/__init__.py", encoding="utf_8_sig").read(),
+    io.open(f"{this_directory}/molbertfeat/__init__.py", encoding="utf_8_sig").read(),
 )
 if version_matches is None:
-    raise Exception("Could not determine MOLBERT version from __init__.py")
+    raise Exception("Could not determine version from __init__.py")
 __version__ = version_matches.group(1)
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name="molbert",
+    name="molbertfeat",
     version=__version__,
     author="Ersilia Open Source Initiative - Largely based on code from BenevolentAI",
     author_email="hello@ersilia.io",
@@ -30,7 +30,6 @@ setup(
     packages=find_packages(),
     install_requires=[
         "pytorch-lightning==0.8.4",
-        "scipy==1.3.1",
         "transformers==3.5.1",
         "torch==1.4.0",
     ],

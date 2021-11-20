@@ -7,8 +7,8 @@ import numpy as np
 import torch
 import yaml
 
-from molbert.models.smiles import SmilesMolbertModel
-from molbert.utils.featurizer.molfeaturizer import SmilesIndexFeaturizer
+from molbertfeat.models.smiles import SmilesMolbertModel
+from molbertfeat.utils.featurizer.molfeaturizer import SmilesIndexFeaturizer
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)

@@ -1,5 +1,3 @@
-__version__ = "0.0.1"
-
 import sys
 import os
 import csv
@@ -10,24 +8,10 @@ try:
 except:
     h5py = None
 
-from molbert.utils.featurizer.molbert_featurizer import MolBertFeaturizer
+from . import Featurizer
 
-PATH = os.path.dirname(os.path.abspath(__file__))
-CHECKPOINT = os.path.join(
-    PATH, "..", "model", "molbert_100epochs", "checkpoints", "last.ckpt"
-)
-REFERENCE_SMILES = os.path.join(PATH, "..", "data", "chembl_29_chemreps.txt")
-
-REFERENCE_DATA = "data.h5"
-
-
-class Featurizer(object):
-    def __init__(self, standardise: bool = False):
-        self.model = MolBertFeaturizer(CHECKPOINT, assume_standardised=not standardise)
-
-    def transform(self, smiles_list):
-        features, masks = self.model.transform(smiles_list)
-        return features
+from . import REFERENCE_SMILES
+from tqdm import tqdm
 
 
 class ReferenceLibrary(object):
@@ -37,17 +21,16 @@ class ReferenceLibrary(object):
         else:
             self.file_name = file_name
 
-    def _read_file_only_valid(self, dir_path):
+    def _read_file_only_valid(self):
         smiles_list = []
         with open(self.file_name, "r") as f:
             reader = csv.reader(f, delimiter="\t")
             next(reader)
-            for r in reader:
+            for i, r in enumerate(reader):
                 smiles_list += [r[1]]
-        smiles_list = smiles_list[:10]
         f = self.mdl.model.featurizer
         std_smiles = []
-        for smi in smiles_list:
+        for smi in tqdm(smiles_list):
             smi = f.standardise(smi)
             if smi is not None:
                 std_smiles += [smi]
@@ -60,20 +43,27 @@ class ReferenceLibrary(object):
                 val_smiles += [standard_smiles]
         return val_smiles
 
-    def save(self, dir_path):
-        assert (h5py is not None)
-        os.makedirs(dir_path, exist_ok=True)
-        self.mdl = Featurizer()
-        smiles_list = self._read_file_only_valid(dir_path)
+    def save_only_smiles(self, csv_file):
+        self.mdl = Featurizer(standardise=True)
+        smiles_list = self._read_file_only_valid()
+        with open(csv_file, "w") as f:
+            writer = csv.writer(f)
+            for smi in smiles_list:
+                writer.writerow([smi])
+
+    def save(self, h5_file):
+        assert h5py is not None
+        self.mdl = Featurizer(standardise=True)
+        smiles_list = self._read_file_only_valid()
         X = self.mdl.transform(smiles_list)
-        with h5py.File(os.path.join(dir_path, REFERENCE_DATA), "w") as f:
+        with h5py.File(h5_file, "w") as f:
             f.create_dataset("Values", data=X)
             smiles_list = np.array(smiles_list, h5py.string_dtype())
             f.create_dataset("Inputs", data=smiles_list)
 
-    def read(self, dir_path):
-        assert (h5py is not None)
-        with h5py.File(os.path.join(dir_path, REFERENCE_DATA), "r") as f:
+    def read(self, h5_file):
+        assert h5py is not None
+        with h5py.File(h5_file, "r") as f:
             X = f["Values"][:]
             smiles_list = f["Inputs"][:]
             smiles_list = [x.decode("utf-8") for x in smiles_list]

@@ -1,11 +1,11 @@
 import logging
 from typing import List
 
-from molbert.datasets.smiles import BertSmilesDataset
-from molbert.models.base import MolbertModel
-from molbert.tasks.tasks import MaskedLMTask, IsSameTask, PhyschemTask, BaseTask
-from molbert.utils.lm_utils import get_seq_lengths, BertConfigExtras
-from molbert.utils.featurizer.molfeaturizer import (
+from molbertfeat.datasets.smiles import BertSmilesDataset
+from molbertfeat.models.base import MolbertModel
+from molbertfeat.tasks.tasks import MaskedLMTask, IsSameTask, PhyschemTask, BaseTask
+from molbertfeat.utils.lm_utils import get_seq_lengths, BertConfigExtras
+from molbertfeat.utils.featurizer.molfeaturizer import (
     PhysChemFeaturizer,
     SmilesIndexFeaturizer,
 )

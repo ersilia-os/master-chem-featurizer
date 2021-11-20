@@ -5,7 +5,7 @@ from torch import nn
 from torch.nn.modules.loss import CrossEntropyLoss, MSELoss
 from transformers.modeling_bert import BertLMPredictionHead
 
-from molbert.tasks.heads import PhysChemHead, FinetuneHead, IsSameHead
+from molbertfeat.tasks.heads import PhysChemHead, FinetuneHead, IsSameHead
 
 
 class BaseTask(nn.Module, ABC):

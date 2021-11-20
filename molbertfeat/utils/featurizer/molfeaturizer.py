@@ -1096,8 +1096,11 @@ class SmilesIndexFeaturizer(MolFeaturizer):
         Returns: standard version the SMILES if valid, None otherwise
 
         """
-        if Chem is None or self.assume_standardised:
+        if self.assume_standardised:
             return smiles
+        if Chem is None:
+            logger.error("Rdkit is not installed! You need it to standardise.")
+            raise Exception
         try:
             mol = Chem.MolFromSmiles(smiles, sanitize=False)
         except Exception as e:

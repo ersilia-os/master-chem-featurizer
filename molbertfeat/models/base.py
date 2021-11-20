@@ -24,7 +24,7 @@ from transformers import (
 from transformers.modeling_bert import BertEncoder, BertPooler
 from transformers.modeling_transfo_xl import PositionalEmbedding
 
-from molbert.datasets.dataloading import MolbertDataLoader
+from molbertfeat.datasets.dataloading import MolbertDataLoader
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)

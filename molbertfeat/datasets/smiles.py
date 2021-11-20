@@ -3,8 +3,8 @@ import random
 from typing import List, Optional, Tuple, Union
 
 import torch
-from molbert.datasets.base import BaseBertDataset
-from molbert.utils.featurizer.molfeaturizer import PhysChemFeaturizer
+from molbertfeat.datasets.base import BaseBertDataset
+from molbertfeat.utils.featurizer.molfeaturizer import PhysChemFeaturizer
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
