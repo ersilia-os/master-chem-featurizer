@@ -4,7 +4,7 @@ This repository provides an interface to a pre-trained MolBERT model, as develop
 ## Install
 
 ```bash
-git clone
+git clone git@github.com:ersilia-os/molbertfeat.git
 cd molbertfeat
 pip install .
 ```
