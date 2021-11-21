@@ -10,9 +10,7 @@ except:
     h5py = None
 
 from . import Featurizer
-
 from . import REFERENCE_SMILES
-from tqdm import tqdm
 
 
 class ReferenceLibrary(object):
@@ -36,7 +34,7 @@ class ReferenceLibrary(object):
         smiles_list = smiles_list[:self.max_molecules]
         f = self.mdl.model.featurizer
         std_smiles = []
-        for smi in tqdm(smiles_list):
+        for smi in smiles_list:
             smi = f.standardise(smi)
             if smi is not None:
                 std_smiles += [smi]
@@ -81,7 +79,7 @@ class ReferenceLibrary(object):
         return todo_smiles
 
     def chunked_iterable(self, seq):
-        return (seq[pos:pos + self.chunksize] for pos in range(0, len(seq), self.write_chunksize))
+        return (seq[pos:pos + self.write_chunksize] for pos in range(0, len(seq), self.write_chunksize))
 
     def append_to_h5(self, h5_file, X, smiles_list):
         with h5py.File(h5_file, "a") as f:
