@@ -24,6 +24,7 @@ class ReferenceLibrary(object):
             self.file_name = file_name
         self.max_molecules = max_molecules
         self.chunksize = chunksize
+        self.write_chunksize = write_chunksize
         self.standardise = standardise
 
     def _read_file_only_valid(self):
@@ -75,7 +76,7 @@ class ReferenceLibrary(object):
         done_smiles = self._get_already_done_inputs(h5_file)
         todo_smiles = []
         for smi in smiles_list:
-            if smi in done_smiles:
+            if smi not in done_smiles:
                 todo_smiles += [smi]
         return todo_smiles
 
@@ -83,7 +84,7 @@ class ReferenceLibrary(object):
         return (seq[pos:pos + self.chunksize] for pos in range(0, len(seq), self.write_chunksize))
 
     def append_to_h5(self, h5_file, X, smiles_list):
-        with open(h5_file, "a") as f:
+        with h5py.File(h5_file, "a") as f:
             smiles_list = np.array(smiles_list, h5py.string_dtype())
             f["Values"].resize(f["Values"].shape[0] + X.shape[0], axis=0)
             f["Values"][-X.shape[0]:] = X
@@ -91,14 +92,21 @@ class ReferenceLibrary(object):
             f["Inputs"][-smiles_list.shape[0]:] = smiles_list
 
     def write_to_h5(self, h5_file, X, smiles_list):
-        with open(h5_file, "w") as f:
+        with h5py.File(h5_file, "w") as f:
             smiles_list = np.array(smiles_list, h5py.string_dtype())
-            f.create_dataset("Values", data=X)
-            f.create_dataset("Inputs", data=smiles_list)
+            f.create_dataset("Values", data=X, shape=X.shape, maxshape=(None, X.shape[1]), chunks=True)
+            f.create_dataset("Inputs", data=smiles_list, shape=smiles_list.shape, maxshape=(None,), chunks=True)
+
+    def size_h5(self, h5_file):
+        if not os.path.exists(h5_file):
+            return
+        with h5py.File(h5_file, "r") as f:
+            s = f["Values"].shape
+        print(s)
 
     def save(self, h5_file, append=True):
         assert h5py is not None
-        self.mdl = Featurizer(standardise=self.standarise, chunksize=self.chunksize)
+        self.mdl = Featurizer(standardise=self.standardise, chunksize=self.chunksize)
         if self.standardise:
             smiles_list = self._read_file_only_valid()
         else:
@@ -106,13 +114,18 @@ class ReferenceLibrary(object):
         file_exists = os.path.isfile(h5_file)
         if file_exists and append:
             smiles_list = self._get_todo_smiles(smiles_list, h5_file)
+            print(len(smiles_list), "remaining")
             for chunk in self.chunked_iterable(smiles_list):
+                self.size_h5(h5_file)
                 X = self.mdl.transform(chunk)
                 self.append_to_h5(h5_file, X, chunk)
         else:
             if file_exists:
+                print("removing file")
                 os.remove(h5_file)
-            for i, chunk in self.chunked_iterable(smiles_list):
+            print(len(smiles_list), "remaining")
+            for i, chunk in enumerate(self.chunked_iterable(smiles_list)):
+                self.size_h5(h5_file)
                 X = self.mdl.transform(chunk)
                 if i == 0:
                     self.write_to_h5(h5_file, X, chunk)
