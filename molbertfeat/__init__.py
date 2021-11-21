@@ -9,7 +9,7 @@ PATH = os.path.dirname(os.path.abspath(__file__))
 CHECKPOINT = os.path.join(
     PATH, "..", "model", "molbert_100epochs", "checkpoints", "last.ckpt"
 )
-REFERENCE_SMILES = os.path.join(PATH, "..", "data", "chembl_29_chemreps.txt")
+REFERENCE_SMILES = os.path.join(PATH, "..", "data", "reference_library.csv")
 
 EMBEDDING_SIZE = 768
 
