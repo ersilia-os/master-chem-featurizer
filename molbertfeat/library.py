@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 
 class ReferenceLibrary(object):
-    def __init__(self, file_name=None, max_molecules=100000000, chunksize=1000, write_chunksize=10000, standarise=False):
+    def __init__(self, file_name=None, max_molecules=100000000, chunksize=1000, write_chunksize=10000, standardise=False):
         assert chunksize <= write_chunksize
         if file_name is None:
             self.file_name = REFERENCE_SMILES
