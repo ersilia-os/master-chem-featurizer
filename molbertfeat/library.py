@@ -54,7 +54,7 @@ class ReferenceLibrary(object):
             reader = csv.reader(f)
             for i, r in enumerate(reader):
                 smiles_list += [r[0]]
-        return smiles_list
+        return smiles_list[:self.max_molecules]
 
     def save_only_smiles(self, csv_file):
         self.mdl = Featurizer(standardise=True)
@@ -116,6 +116,7 @@ class ReferenceLibrary(object):
             for chunk in self.chunked_iterable(smiles_list):
                 self.size_h5(h5_file)
                 X = self.mdl.transform(chunk)
+                print(X)
                 self.append_to_h5(h5_file, X, chunk)
         else:
             if file_exists:
@@ -125,6 +126,7 @@ class ReferenceLibrary(object):
             for i, chunk in enumerate(self.chunked_iterable(smiles_list)):
                 self.size_h5(h5_file)
                 X = self.mdl.transform(chunk)
+                print(X)
                 if i == 0:
                     self.write_to_h5(h5_file, X, chunk)
                 else:
