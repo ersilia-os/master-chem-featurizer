@@ -78,8 +78,10 @@ class ReferenceLibrary(object):
                 todo_smiles += [smi]
         return todo_smiles
 
-    def chunked_iterable(self, seq):
-        return (seq[pos:pos + self.write_chunksize] for pos in range(0, len(seq), self.write_chunksize))
+    def chunker(self, n):
+        size = self.write_chunksize
+        for i in range(0, n, size):
+            yield slice(i, i + size)
 
     def append_to_h5(self, h5_file, X, smiles_list):
         with h5py.File(h5_file, "a") as f:
@@ -102,6 +104,13 @@ class ReferenceLibrary(object):
             s = f["Values"].shape
         print(s)
 
+    def _all_zeros(self, X):
+        c = 0
+        for x in X:
+            if np.sum(x) == 0:
+                c += 1
+        print("Empty descriptors", c)
+
     def save(self, h5_file, append=True):
         assert h5py is not None
         self.mdl = Featurizer(standardise=self.standardise, chunksize=self.chunksize)
@@ -113,24 +122,26 @@ class ReferenceLibrary(object):
         if file_exists and append:
             smiles_list = self._get_todo_smiles(smiles_list, h5_file)
             print(len(smiles_list), "remaining")
-            for chunk in self.chunked_iterable(smiles_list):
+            for chunk in self.chunker(len(smiles_list)):
+                _smiles = smiles_list[chunk]
                 self.size_h5(h5_file)
-                X = self.mdl.transform(chunk)
-                print(X)
-                self.append_to_h5(h5_file, X, chunk)
+                X = self.mdl.transform(_smiles)
+                self._all_zeros(X)
+                self.append_to_h5(h5_file, X, _smiles)
         else:
             if file_exists:
                 print("removing file")
                 os.remove(h5_file)
             print(len(smiles_list), "remaining")
-            for i, chunk in enumerate(self.chunked_iterable(smiles_list)):
+            for i, chunk in enumerate(self.chunker(len(smiles_list))):
+                _smiles = smiles_list[chunk]
                 self.size_h5(h5_file)
-                X = self.mdl.transform(chunk)
-                print(X)
+                X = self.mdl.transform(_smiles)
+                self._all_zeros(X)
                 if i == 0:
-                    self.write_to_h5(h5_file, X, chunk)
+                    self.write_to_h5(h5_file, X, _smiles)
                 else:
-                    self.append_to_h5(h5_file, X, chunk)
+                    self.append_to_h5(h5_file, X, _smiles)
 
     def read(self, h5_file):
         assert h5py is not None
