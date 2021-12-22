@@ -1,6 +1,8 @@
 # MolBERT featurizer
-This repository provides an interface to a pre-trained MolBERT model, as developed by BenevolentAI: https://github.com/BenevolentAI/MolBERT
-All credit goes to the original authors. 
+This repository provides an interface to a pre-trained MolBERT model, as developed by BenevolentAI: https://github.com/BenevolentAI/MolBERT. 
+
+MolBERT is a molecular representation method based on the BERT model language developed to improve current methods for molecule featurization for downstream QSAR model training (https://arxiv.org/abs/2011.13230).
+All credit goes to the original authors. The original MolBERT repository is released under an MIT License.
 
 ## Install
 
@@ -53,3 +55,10 @@ with h5py.File("reference_library.h5", "r") as f:
     X = f["Values"][:]
     smiles = [inp.decode("utf-8") for inp in f["Inputs"]]
 ```
+
+
+# About us
+This repository is created and maintained by the Ersilia team.
+The [Ersilia Open Source Initiative](https://ersilia.io) is a Non Profit Organization incorporated with the Charity Commission for England and Wales (number 1192266). Our mission is to reduce the imbalance in biomedical research productivity between countries by supporting research in underfunded settings.
+
+You can support us via our [Open Collective](https:/opencollective.com/ersilia).
